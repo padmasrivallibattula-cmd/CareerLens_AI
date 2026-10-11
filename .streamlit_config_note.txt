@@ -1,0 +1,5 @@
+For Streamlit Community Cloud deployment, add secrets in the app's Settings > Secrets:
+
+ADZUNA_APP_ID = "66260a86"
+ADZUNA_APP_KEY = "40d29714455592b062cff2a3c97f734f"
+Do not upload your local .env file to GitHub.
