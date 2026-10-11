@@ -1,3 +1,4 @@
+
 import os
 import re
 import io
@@ -84,6 +85,29 @@ def find_skills(text):
         if re.search(pattern, low):
             found.append(skill)
     return sorted(set(found))
+
+def is_likely_resume(text):
+    """Heuristic check to reject ordinary documents before resume analysis."""
+    normalized = re.sub(r"\s+", " ", text or "").strip().lower()
+    if len(normalized.split()) < 35:
+        return False, "This document is too short to identify as a resume. Please upload a complete resume."
+
+    # Look for several resume-specific signals rather than relying on a single keyword.
+    section_terms = [
+        "education", "work experience", "professional experience", "employment history",
+        "technical skills", "skills", "projects", "internship", "career objective",
+        "professional summary", "certifications", "qualification", "experience",
+    ]
+    section_hits = sum(1 for term in section_terms if re.search(r"\b" + re.escape(term) + r"\b", normalized))
+    skill_hits = len(find_skills(normalized))
+    contact_hits = int(bool(re.search(r"[\w.+-]+@[\w.-]+\.[a-z]{2,}", normalized)))
+    contact_hits += int(bool(re.search(r"(?:\+?\d[\d ()-]{7,}\d)", normalized)))
+
+    # Accept a mix of resume sections, recognizable skills, and/or contact details.
+    signals = (section_hits >= 2) or (section_hits >= 1 and skill_hits >= 2) or (skill_hits >= 3 and contact_hits >= 1)
+    if not signals:
+        return False, "This file doesn't appear to be a resume. Please upload a resume containing details such as education, skills, projects, or work experience."
+    return True, "Resume document detected."
 
 def career_recommendations(resume_text):
     skills = set(find_skills(resume_text))
@@ -263,6 +287,13 @@ def resume_upload():
             return
         if not text:
             st.error("No selectable text was found. If this is a scanned PDF, OCR support is needed.")
+            return
+        is_resume, validation_message = is_likely_resume(text)
+        if not is_resume:
+            # Clear any previously uploaded resume so invalid documents cannot reuse old results.
+            st.session_state.resume_text = ""
+            st.session_state.resume_name = ""
+            st.error(validation_message)
             return
         st.session_state.resume_text = text
         st.session_state.resume_name = uploaded.name
