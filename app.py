@@ -43,6 +43,8 @@ st.markdown("""
     div[data-testid="stFileUploader"] { border:1px dashed #a5b4fc; border-radius:18px; padding:.6rem; background:#ffffffb8; }
     div.stButton > button[kind="primary"], div[data-testid="stDownloadButton"] button { border-radius:12px; font-weight:700; }
     @media (max-width: 640px) { .hero-wrap {border-radius:20px;} .hero-copy {font-size:1rem;} }
+    /* Hide Streamlit's app toolbar/footer badges where the current version permits. */
+    [data-testid="stToolbar"], [data-testid="stStatusWidget"], #MainMenu, footer { visibility: hidden !important; height: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 st.markdown("""<style>
